@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 public class IntegerListImpl implements IntegerList {
 
-    private final Integer[] storage;
+    private Integer[] storage;
     private int size;
 
     public IntegerListImpl() {
@@ -21,14 +21,14 @@ public class IntegerListImpl implements IntegerList {
     @Override
     public Integer add(Integer item) {
         validateIten(item);
-        validateSize();
+        growIfNeeded();
         storage[size++] = item;
         return item;
     }
 
     @Override
     public Integer add(int index, Integer item) {
-        validateSize();
+        growIfNeeded();
         validateIten(item);
         validateIndex(index);
         if (index == size) {
@@ -78,14 +78,14 @@ public class IntegerListImpl implements IntegerList {
     public boolean contains(Integer item) {
         Integer[] storageCopy = toArray();
         sort(storageCopy);
-        return binarySearch(storageCopy,item);
+        return binarySearch(storageCopy, item);
     }
 
 
     @Override
     public Integer indexOf(Integer item) {
         for (int i = 0; i < size; i++) {
-            if (storage[i].equals(item)){
+            if (storage[i].equals(item)) {
                 return 1;
             }
         }
@@ -95,7 +95,7 @@ public class IntegerListImpl implements IntegerList {
     @Override
     public Integer lastIndexOf(Integer item) {
         for (int i = size - 1; i >= 0; i--) {
-            if (storage[i].equals(item)){
+            if (storage[i].equals(item)) {
                 return i;
             }
         }
@@ -131,53 +131,79 @@ public class IntegerListImpl implements IntegerList {
     @Override
     public Integer[] toArray() {
 
-        return Arrays.copyOf(storage,size);
+        return Arrays.copyOf(storage, size);
     }
 
-    private void validateIten(Integer iten){
-        if (iten == null){
+    private void validateIten(Integer iten) {
+        if (iten == null) {
             throw new NullItemException();
         }
     }
-    private void validateSize(){
-        if (size == storage.length){
-            throw  new StorageInFullException();
+
+    private void growIfNeeded() {
+        if (size == storage.length) {
+            grow();
         }
     }
-    private void validateIndex(Integer index){
-        if (index < 0 || index > size){
+
+    private void validateIndex(Integer index) {
+        if (index < 0 || index > size) {
             throw new InvalidIndexException();
         }
     }
-    private void sort(Integer[] arr){
-        for (int i = 1; i < arr.length; i++) {
-        int temp = arr[i];
-        int j = i;
-        while (j > 0 && arr[j - i] > temp){
-            arr[j] = arr[j - 1];
-            j--;
-        }
-        arr[j] = temp;
-        }
+
+    private void sort(Integer[] arr) {
+        quickSort(arr, 0, arr.length - 1);
     }
-    private boolean binarySearch(Integer[] arr, Integer item){
-        int min = 0;
-        int max = arr.length - 1;
+    private void quickSort(Integer[] arr, int begin, int end){
+    if (begin < end){
+        int partitionIndex = partition(arr, begin, end);
+        quickSort(arr, begin, partitionIndex - 1);
+        quickSort(arr, partitionIndex + 1, end);
+    }
 
-        while (min <= max) {
-            int mid = (min + max) / 2;
-
-            if (item == arr[mid]) {
-                return true;
-            }
-
-            if (item < arr[mid]) {
-                max = mid - 1;
-            } else {
-                min = mid + 1;
+    private int partition(Integer[] arr, int begin, int end) {
+        int pivot = arr[end];
+        int i = (begin - 1);
+        for (int j = begin; j < end; j++) {
+            if (arr[j] < pivot) {
+                i++;
+                swapElements(arr, i, j);
             }
         }
-        return false;
-    }
+        swapElements(arr, i + 1, end)
+        return i + 1;
     }
 
+    private void swapElements(Integer[] arr, int i1, int i2) {
+        int temp = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = temp;
+    }
+
+
+
+        private boolean binarySearch (Integer[]arr, Integer item){
+            int min = 0;
+            int max = arr.length - 1;
+
+            while (min <= max) {
+                int mid = (min + max) / 2;
+
+                if (item == arr[mid]) {
+                    return true;
+                }
+
+                if (item < arr[mid]) {
+                    max = mid - 1;
+                } else {
+                    min = mid + 1;
+                }
+            }
+            return false;
+        }
+
+    private void grow(){
+        storage = Arrays.copyOf(storage, size + size / 2);
+    }
+}
